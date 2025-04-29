@@ -1,0 +1,4 @@
+def contains_duplicate(nums):
+    return len(nums) != len(set(nums))
+nums = list(map(int, input("Введите массив чисел через пробел: ").split()))
+print(contains_duplicate(nums))
