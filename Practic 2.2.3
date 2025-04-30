@@ -1,0 +1,19 @@
+class TwoNumbers:
+    def __init__(self, a, b):
+        self.a = a
+        self.b = b
+
+    def display(self):
+        print(f"Число 1: {self.a}, Число 2: {self.b}")
+
+    def total(self):
+        return self.a + self.b
+
+    def maximum(self):
+        return max(self.a, self.b)
+a = int(input("Введите значение числа a: "))
+b = int(input("Введите значение числа B: "))
+nums = TwoNumbers(a , b)
+nums.display()
+print("Сумма:", nums.total())
+print("Максимум:", nums.maximum())
