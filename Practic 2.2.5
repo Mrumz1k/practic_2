@@ -1,0 +1,13 @@
+class Example:
+    def __init__(self, x=0, y=0):
+        self.x = x
+        self.y = y
+        print(f"Создан объект с x={self.x}, y={self.y}")
+
+    def __del__(self):
+        print(f"Объект с x={self.x}, y={self.y} удалён")
+
+obj1 = Example(3, 4)
+obj2 = Example()  
+
+del obj1
