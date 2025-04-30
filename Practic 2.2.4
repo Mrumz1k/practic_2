@@ -1,0 +1,23 @@
+class Counter:
+    def __init__(self, value=0):
+        self.value = value
+
+    def increment(self):
+        self.value += 1
+
+    def decrement(self):
+        self.value -= 1
+
+    def current(self):
+        return self.value
+
+
+start_value = int(input("Введите начальное значение счётчика: "))
+
+count = Counter(start_value)
+print("Текущее значение:", count.current())
+count.increment()
+print("После увеличения:", count.current())
+count.decrement()
+count.decrement()
+print("После двух уменьшений:", count.current())
