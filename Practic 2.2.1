@@ -1,0 +1,54 @@
+class Student:
+    def __init__(self, surname, birth_date, group_number, grades):
+        self.surname = surname
+        self.birth_date = birth_date
+        self.group_number = group_number
+        self.grades = grades
+
+    def change_surname(self, new_surname):
+        self.surname = new_surname
+
+    def change_birth_date(self, new_birth_date):
+        self.birth_date = new_birth_date
+
+    def change_group_number(self, new_group_number):
+        self.group_number = new_group_number
+
+    def display_info(self):
+        print(f"Фамилия: {self.surname}")
+        print(f"Дата рождения: {self.birth_date}")
+        print(f"Номер группы: {self.group_number}")
+        print(f"Успеваемость: {self.grades}")
+        average = sum(self.grades) / len(self.grades)
+        print(f"Средний балл: {average:.2f}")
+
+def main():
+    student = Student("Иванов", "2004-05-10", "А-01", [5, 4, 4, 5, 5])
+
+    while True:
+        print("\n1. Показать информацию о студенте\n2. Изменить фамилию\n3. Изменить дату рождения\n4. Изменить номер группы\n5. Выход")
+        choice = input("Выберите действие: ")
+
+        if choice == "1":
+            student.display_info()
+
+        elif choice == "2":
+            new_surname = input("Введите новую фамилию: ")
+            student.change_surname(new_surname)
+
+        elif choice == "3":
+            new_birth_date = input("Введите новую дату рождения (гггг-мм-дд): ")
+            student.change_birth_date(new_birth_date)
+
+        elif choice == "4":
+            new_group_number = input("Введите новый номер группы: ")
+            student.change_group_number(new_group_number)
+
+        elif choice == "5":
+            break
+
+        else:
+            print("Некорректный выбор. Попробуйте снова.")
+
+if __name__ == "__main__":
+    main()
