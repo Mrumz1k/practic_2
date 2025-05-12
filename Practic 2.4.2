@@ -1,0 +1,152 @@
+from sqlalchemy import create_engine, Column, Integer, String, Float, ForeignKey, DateTime
+from sqlalchemy.orm import sessionmaker, relationship, declarative_base
+import datetime
+
+# --- База данных ---
+engine = create_engine('sqlite:///i_love_drink.db', echo=False)
+Session = sessionmaker(bind=engine)
+session = Session()
+Base = declarative_base()
+
+# --- Модели ---
+
+class AlcoholicDrink(Base):
+    __tablename__ = 'alcoholic_drinks'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    alcohol_percentage = Column(Float, nullable=False)
+    price_per_unit = Column(Float, nullable=False)
+    stock = Column(Float, nullable=False)  # в литрах
+
+class Ingredient(Base):
+    __tablename__ = 'ingredients'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    stock = Column(Float, nullable=False)  # в килограммах или литрах
+    price_per_unit = Column(Float, nullable=False)
+
+class Cocktail(Base):
+    __tablename__ = 'cocktails'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    calculated_strength = Column(Float)
+    price = Column(Float, nullable=False)
+
+    ingredients = relationship("CocktailIngredient", back_populates="cocktail")
+
+class CocktailIngredient(Base):
+    __tablename__ = 'cocktail_ingredients'
+
+    id = Column(Integer, primary_key=True)
+    cocktail_id = Column(Integer, ForeignKey('cocktails.id'))
+    drink_id = Column(Integer, ForeignKey('alcoholic_drinks.id'), nullable=True)
+    ingredient_id = Column(Integer, ForeignKey('ingredients.id'), nullable=True)
+    amount = Column(Float, nullable=False)  # в мл или граммах
+
+    cocktail = relationship("Cocktail", back_populates="ingredients")
+
+class Sale(Base):
+    __tablename__ = 'sales'
+
+    id = Column(Integer, primary_key=True)
+    item_type = Column(String, nullable=False)  # 'cocktail' или 'alcoholic_drink'
+    item_id = Column(Integer, nullable=False)
+    quantity = Column(Integer, nullable=False)
+    total_price = Column(Float, nullable=False)
+    sale_date = Column(DateTime, default=datetime.datetime.utcnow)
+
+class Restock(Base):
+    __tablename__ = 'restocks'
+
+    id = Column(Integer, primary_key=True)
+    item_type = Column(String, nullable=False)  # 'alcoholic_drink' или 'ingredient'
+    item_id = Column(Integer, nullable=False)
+    quantity = Column(Float, nullable=False)
+    restock_date = Column(DateTime, default=datetime.datetime.utcnow)
+
+# --- Функции работы с данными ---
+
+def init_db():
+    Base.metadata.create_all(engine)
+
+def add_alcoholic_drink(name, alcohol_percentage, price_per_unit, stock):
+    drink = AlcoholicDrink(name=name, alcohol_percentage=alcohol_percentage, price_per_unit=price_per_unit, stock=stock)
+    session.add(drink)
+    session.commit()
+    print(f"Напиток {name} добавлен!")
+
+def list_alcoholic_drinks():
+    drinks = session.query(AlcoholicDrink).all()
+    for drink in drinks:
+        print(f"{drink.id}: {drink.name} ({drink.alcohol_percentage}% алкоголя) - {drink.stock} л в наличии")
+
+def sell_alcoholic_drink(drink_id, quantity):
+    drink = session.query(AlcoholicDrink).filter_by(id=drink_id).first()
+    if drink and drink.stock >= quantity:
+        drink.stock -= quantity
+        total_price = drink.price_per_unit * quantity
+        sale = Sale(item_type='alcoholic_drink', item_id=drink.id, quantity=quantity, total_price=total_price)
+        session.add(sale)
+        session.commit()
+        print(f"Продано {quantity} л {drink.name} на сумму {total_price:.2f}!")
+    else:
+        print("Недостаточно товара на складе или напиток не найден!")
+
+def restock_alcoholic_drink(drink_id, quantity):
+    drink = session.query(AlcoholicDrink).filter_by(id=drink_id).first()
+    if drink:
+        drink.stock += quantity
+        restock = Restock(item_type='alcoholic_drink', item_id=drink.id, quantity=quantity)
+        session.add(restock)
+        session.commit()
+        print(f"Пополнено {quantity} л напитка {drink.name}!")
+    else:
+        print("Напиток не найден!")
+
+# --- Основное меню ---
+
+def main():
+    init_db()
+
+    while True:
+        print("\n--- I Love Drink ---")
+        print("1. Добавить алкогольный напиток")
+        print("2. Показать все алкогольные напитки")
+        print("3. Продать алкогольный напиток")
+        print("4. Пополнить запасы напитка")
+        print("0. Выход")
+        choice = input("Выберите действие: ")
+
+        if choice == '1':
+            name = input("Название напитка: ")
+            alcohol_percentage = float(input("Крепость (%): "))
+            price_per_unit = float(input("Цена за литр: "))
+            stock = float(input("Количество на складе (л): "))
+            add_alcoholic_drink(name, alcohol_percentage, price_per_unit, stock)
+
+        elif choice == '2':
+            list_alcoholic_drinks()
+
+        elif choice == '3':
+            list_alcoholic_drinks()
+            drink_id = int(input("ID напитка для продажи: "))
+            quantity = float(input("Количество (л): "))
+            sell_alcoholic_drink(drink_id, quantity)
+
+        elif choice == '4':
+            list_alcoholic_drinks()
+            drink_id = int(input("ID напитка для пополнения: "))
+            quantity = float(input("Количество (л): "))
+            restock_alcoholic_drink(drink_id, quantity)
+
+        elif choice == '0':
+            break
+
+        else:
+            print("Неверный выбор!")
+
+if __name__ == '__main__':
+    main()
