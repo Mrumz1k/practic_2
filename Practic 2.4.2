@@ -2,13 +2,10 @@ from sqlalchemy import create_engine, Column, Integer, String, Float, ForeignKey
 from sqlalchemy.orm import sessionmaker, relationship, declarative_base
 import datetime
 
-# --- База данных ---
 engine = create_engine('sqlite:///i_love_drink.db', echo=False)
 Session = sessionmaker(bind=engine)
 session = Session()
 Base = declarative_base()
-
-# --- Модели ---
 
 class AlcoholicDrink(Base):
     __tablename__ = 'alcoholic_drinks'
@@ -17,14 +14,14 @@ class AlcoholicDrink(Base):
     name = Column(String, nullable=False)
     alcohol_percentage = Column(Float, nullable=False)
     price_per_unit = Column(Float, nullable=False)
-    stock = Column(Float, nullable=False)  # в литрах
+    stock = Column(Float, nullable=False)
 
 class Ingredient(Base):
     __tablename__ = 'ingredients'
 
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
-    stock = Column(Float, nullable=False)  # в килограммах или литрах
+    stock = Column(Float, nullable=False)
     price_per_unit = Column(Float, nullable=False)
 
 class Cocktail(Base):
@@ -44,7 +41,7 @@ class CocktailIngredient(Base):
     cocktail_id = Column(Integer, ForeignKey('cocktails.id'))
     drink_id = Column(Integer, ForeignKey('alcoholic_drinks.id'), nullable=True)
     ingredient_id = Column(Integer, ForeignKey('ingredients.id'), nullable=True)
-    amount = Column(Float, nullable=False)  # в мл или граммах
+    amount = Column(Float, nullable=False)
 
     cocktail = relationship("Cocktail", back_populates="ingredients")
 
@@ -52,7 +49,7 @@ class Sale(Base):
     __tablename__ = 'sales'
 
     id = Column(Integer, primary_key=True)
-    item_type = Column(String, nullable=False)  # 'cocktail' или 'alcoholic_drink'
+    item_type = Column(String, nullable=False)
     item_id = Column(Integer, nullable=False)
     quantity = Column(Integer, nullable=False)
     total_price = Column(Float, nullable=False)
@@ -62,12 +59,11 @@ class Restock(Base):
     __tablename__ = 'restocks'
 
     id = Column(Integer, primary_key=True)
-    item_type = Column(String, nullable=False)  # 'alcoholic_drink' или 'ingredient'
+    item_type = Column(String, nullable=False)
     item_id = Column(Integer, nullable=False)
     quantity = Column(Float, nullable=False)
     restock_date = Column(DateTime, default=datetime.datetime.utcnow)
 
-# --- Функции работы с данными ---
 
 def init_db():
     Base.metadata.create_all(engine)
@@ -105,8 +101,6 @@ def restock_alcoholic_drink(drink_id, quantity):
         print(f"Пополнено {quantity} л напитка {drink.name}!")
     else:
         print("Напиток не найден!")
-
-# --- Основное меню ---
 
 def main():
     init_db()
