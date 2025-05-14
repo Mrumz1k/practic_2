@@ -1,0 +1,92 @@
+import psutil
+import sqlite3
+from datetime import datetime
+import time
+
+DB_NAME = 'system_monitor.db'
+
+# Инициализация базы данных
+def init_db():
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS system_stats (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT,
+            cpu_usage REAL,
+            memory_usage REAL,
+            disk_usage REAL
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+# Сохранение данных в БД
+def save_stats(timestamp, cpu, memory, disk):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO system_stats (timestamp, cpu_usage, memory_usage, disk_usage)
+        VALUES (?, ?, ?, ?)
+    ''', (timestamp, cpu, memory, disk))
+    conn.commit()
+    conn.close()
+
+# Получение всех данных из БД
+def fetch_all_stats():
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM system_stats')
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
+
+# Получение текущих системных показателей
+def get_system_stats():
+    cpu = psutil.cpu_percent(interval=1)
+    memory = psutil.virtual_memory().percent
+    disk = psutil.disk_usage('/').percent
+    return cpu, memory, disk
+
+# Главное меню
+def main():
+    init_db()
+    while True:
+        print("\nСИСТЕМНЫЙ МОНИТОР")
+        print("1. Сделать замер и сохранить")
+        print("2. Показать сохраненные данные")
+        print("3. Автоматический режим (каждые 5 сек, остановка - Ctrl+C)")
+        print("0. Выход")
+        choice = input("Выберите действие: ")
+
+        if choice == '1':
+            cpu, memory, disk = get_system_stats()
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            save_stats(timestamp, cpu, memory, disk)
+            print(f"[{timestamp}] CPU: {cpu}% | RAM: {memory}% | Disk: {disk}%")
+
+        elif choice == '2':
+            rows = fetch_all_stats()
+            print("\nСохраненные данные:")
+            for row in rows:
+                print(f"{row[1]} | CPU: {row[2]}% | RAM: {row[3]}% | Disk: {row[4]}%")
+
+        elif choice == '3':
+            try:
+                while True:
+                    cpu, memory, disk = get_system_stats()
+                    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    save_stats(timestamp, cpu, memory, disk)
+                    print(f"[{timestamp}] CPU: {cpu}% | RAM: {memory}% | Disk: {disk}%")
+                    time.sleep(5)
+            except KeyboardInterrupt:
+                print("\nАвтоматический режим остановлен.")
+
+        elif choice == '0':
+            print("Выход из программы.")
+            break
+        else:
+            print("Неверный выбор. Попробуйте снова.")
+
+if __name__ == '__main__':
+    main()
