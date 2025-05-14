@@ -5,7 +5,6 @@ import time
 
 DB_NAME = 'system_monitor.db'
 
-# Инициализация базы данных
 def init_db():
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
@@ -21,7 +20,6 @@ def init_db():
     conn.commit()
     conn.close()
 
-# Сохранение данных в БД
 def save_stats(timestamp, cpu, memory, disk):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
@@ -32,7 +30,6 @@ def save_stats(timestamp, cpu, memory, disk):
     conn.commit()
     conn.close()
 
-# Получение всех данных из БД
 def fetch_all_stats():
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
@@ -41,14 +38,12 @@ def fetch_all_stats():
     conn.close()
     return rows
 
-# Получение текущих системных показателей
 def get_system_stats():
     cpu = psutil.cpu_percent(interval=1)
     memory = psutil.virtual_memory().percent
     disk = psutil.disk_usage('/').percent
     return cpu, memory, disk
 
-# Главное меню
 def main():
     init_db()
     while True:
